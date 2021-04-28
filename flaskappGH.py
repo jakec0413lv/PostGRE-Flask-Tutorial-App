@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 
 app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:---PW---@localhost/height_collector'
+app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:-----PW------@localhost/height_collector'
 db=SQLAlchemy(app)
 
 class Data(db.Model):
@@ -26,7 +26,14 @@ def success():
     if request.method == 'POST':
         email=request.form["email_name"]
         height=request.form["height_name"]
-    return render_template("success.html")
+        if db.session.query(Data).filter(Data.email_ == email).count() == 0: #Check for duplicate emails
+            data=Data(email, height)
+            db.session.add(data)
+            db.session.commit()
+            return render_template("success.html")
+        else:
+            return render_template("index.html", 
+            text="Email already registered!")
 
 if __name__ == "__main__":
     app.debug=True
